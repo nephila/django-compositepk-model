@@ -1,0 +1,3 @@
+include README.md
+include LICENSE
+recursive-include cpkmodel *.html *.png *.gif *js *jpg *jpeg *svg *py *css *po *mo *html *eot *svg *ttf *woff *swf
