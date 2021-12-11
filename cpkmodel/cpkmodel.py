@@ -3,15 +3,15 @@ from django.db.models import Model
 from django.db.models.base import ModelBase
 from django.db.models.deletion import Collector
 
-from .constants import CPK_SEP
 from .compositekey import CompositeKey
+from .constants import CPK_SEP
 from .cpkquery import CPkQuerySet
 
 
 class CompositePk(CompositeKey):
     def __init__(self, keys):
         super().__init__(keys, primary=True)
-        
+
 
 class CPkModelMixin:
     @property
@@ -20,12 +20,12 @@ class CPkModelMixin:
 
     def _get_cpk_val(self, meta=None):
         meta = meta or self._meta
-        key_values = getattr(self, 'pkvals')
+        key_values = self.pkvals
         if key_values:
             if None in key_values:
                 return None
             else:
-                strvalues = tuple((str(val) for val in key_values))
+                strvalues = tuple(str(val) for val in key_values)
                 value = CPK_SEP.join(strvalues)
                 # MEMO: record for admin
                 setattr(self, meta.pk.attname, value)
@@ -36,7 +36,6 @@ class CPkModelMixin:
     def _set_cpk_val(self, value):
         super()._set_pk_val(value)
         # set into original filelds
-        meta = self._meta
         vals = value.split(CPK_SEP)
         for key, val in zip(self.pkeys, vals):
             setattr(self, key.attname, val)
@@ -51,19 +50,18 @@ class CPkModelMixin:
         if self.has_compositepk:
             keys = self.pkeys
             vals = self.pkvals
-            return { key.attname:val for key, val in zip(keys, vals)}
+            return {key.attname: val for key, val in zip(keys, vals)}
         else:
-            return { 'pk':self.pk }
-        
+            return {"pk": self.pk}
 
     ###########################
     # override
     ###########################
     def delete(self, using=None, keep_parents=False):
         using = using or router.db_for_write(self.__class__, instance=self)
-        assert self.pk is not None, (
-            "%s object can't be deleted because its %s attribute is set to None." %
-            (self._meta.object_name, self._meta.pk.attname)
+        assert self.pk is not None, "{} object can't be deleted because its {} attribute is set to None.".format(
+            self._meta.object_name,
+            self._meta.pk.attname,
         )
 
         collector = Collector(using=using)
@@ -71,7 +69,7 @@ class CPkModelMixin:
         #   MEMO: Collector doesn't support method to change its base query.
         #           Therefore, I changed param '[self]' to CPkQuerySet object.
         #
-        #collector.collect([self], keep_parents=keep_parents)
+        # collector.collect([self], keep_parents=keep_parents)
         model = self._meta.model
         qs = model.objects.filter(pk=self.pk)
         collector.collect(qs, keep_parents=keep_parents)
@@ -80,14 +78,15 @@ class CPkModelMixin:
 
 
 class CPkModelBase(ModelBase):
-    """ Metaclass for CompositePkModel."""
+    """Metaclass for CompositePkModel."""
+
     def __new__(cls, name, bases, attrs, **kwargs):
-        if name == 'CPkModel':
-            # change bsses=(), because don't wanto to add app_talbe, CompositePkModel is only "Intermediate"
-            return super().__new__(cls, name, (), attrs, **kwargs) 
+        if name == "CPkModel":
+            # change bsses=(), because don't want to add app_table, CompositePkModel is only "Intermediate"
+            return super().__new__(cls, name, (), attrs, **kwargs)
         else:
             modelbases = []
-            IntermediateClass = globals()['CPkModel']
+            IntermediateClass = globals()["CPkModel"]  # noqa: N806
             for base in bases:
                 if base == IntermediateClass:
                     # skip "Intermediate" CPkModel and change to Model
@@ -101,17 +100,17 @@ class CPkModelBase(ModelBase):
             if len(pkeys) > 1:
                 super_new.has_compositepk = True
                 meta.pk = CompositePk(pkeys)
-                setattr(super_new, "pk", CPkModelMixin.cpk)
-                setattr(super_new, "_get_pk_val", CPkModelMixin._get_cpk_val)
-                setattr(super_new, "_set_pk_val", CPkModelMixin._set_cpk_val)
-                setattr(super_new, meta.pk.attname, None)
-                setattr(super_new, "_check_single_primary_key", CPkModelMixin._no_check)
-                setattr(super_new, "delete", CPkModelMixin.delete)
+                setattr(super_new, "pk", CPkModelMixin.cpk)  # noqa: B010
+                setattr(super_new, "_get_pk_val", CPkModelMixin._get_cpk_val)  # noqa: B010
+                setattr(super_new, "_set_pk_val", CPkModelMixin._set_cpk_val)  # noqa: B010
+                setattr(super_new, meta.pk.attname, None)  # noqa: B010
+                setattr(super_new, "_check_single_primary_key", CPkModelMixin._no_check)  # noqa: B010
+                setattr(super_new, "delete", CPkModelMixin.delete)  # noqa: B010
             else:
                 super_new.has_compositepk = False
-            setattr(super_new, "get_pk_lookups", CPkModelMixin.get_pk_lookups)
+            setattr(super_new, "get_pk_lookups", CPkModelMixin.get_pk_lookups)  # noqa: B010
             meta.base_manager._queryset_class = CPkQuerySet
-            meta.default_manager._queryset_class = CPkQuerySet           
+            meta.default_manager._queryset_class = CPkQuerySet
             super_new.pkeys = pkeys
             super_new.pkvals = CPkModelMixin.pkvals
             super_new._meta = meta

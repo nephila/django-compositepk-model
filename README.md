@@ -1,7 +1,7 @@
 # django-compositepk-model
 
 [日本語](https://gijutsu.com/2021/06/06/djangodjango-compositepk-model/#cpkmodel)
- 
+
 Provide an extended Django Model class named 'CPkModel' that supports composite primary keys. Also provide an extended Query class 'CPkQuery' that supports multi-column lookups.
 
 This package supports treating legacy db tables with a composite primary key, without adding a surrogate key.
@@ -53,10 +53,10 @@ class CompanyBranch(CPkModel):
 
 That's all. No additional definitions or virtual fields are required.
 
-*1: "Migration" will fail because "primary_key=True" to multi-column unless "managed = False". 
+*1: "Migration" will fail because "primary_key=True" to multi-column unless "managed = False".
     Legacy tables already exisit, or have to be created by hand.
     Or, comment out "primary_key=True" and "managed=False" while migration.
-    
+
 ### 2. Admin avairable
 
 CPkModel can be used in Django Admin. The values of composite primary key are displayed in a comma separated style. Change(Update), Delete are fine. Add(Create) has a problem that CreateView do unique check to each key Field. So you can't add enough child records. But, this is only CreateView's problem. Your program can create child records by QuerySet or Model method.
@@ -96,7 +96,7 @@ bulk_update methond avairable for PostgreSQL. But SQLite3 is not supported.
 ## Limitations
 
 ### 1. Migration(Create table)
-Migration will fail because "primary_key=True" to multi-column unless "managed = False". 
+Migration will fail because "primary_key=True" to multi-column unless "managed = False".
 Legacy tables already exisit, or have to be created by hand.
 Otherwise, comment out "primary_key=True" and "managed=False" while migration.
 
@@ -110,14 +110,14 @@ Need to make CPkForeignKey to support relations to GrandChild model.
 Django model doesn't support multi-column "IN" query for SQLite at present.
 
 ### 5. Create is better than Save for INSERT
-For INSERT, you'd better use CPKQuerySet.create rather than CPKModel.save. 
+For INSERT, you'd better use CPKQuerySet.create rather than CPKModel.save.
 Because Model.save will try to UPDATE first if key value is set. Another way to avoid this, you can use option force_insert=True.
 
 ```python
 CompanyBranch.objects.create(**params)
 
- or 
- 
+ or
+
 obj = CompanyBranch(**params)
 obj.save(force_insert=True)
 ```
@@ -130,7 +130,7 @@ pip install django-compositepk-model
 
 ## Links
 
-https://code.djangoproject.com/ticket/373  
-https://code.djangoproject.com/wiki/MultipleColumnPrimaryKeys  
-https://gijutsu.com/en/2021/01/19/django-composite-primary-key/  
-https://gijutsu.com/en/2021/03/16/django-ticket373/  
+https://code.djangoproject.com/ticket/373
+https://code.djangoproject.com/wiki/MultipleColumnPrimaryKeys
+https://gijutsu.com/en/2021/01/19/django-composite-primary-key/
+https://gijutsu.com/en/2021/03/16/django-ticket373/

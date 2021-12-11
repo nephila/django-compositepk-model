@@ -19,14 +19,12 @@ class CompositeCol(Col):
 
 class CompositeKey(Field):
     def __init__(self, keys, primary=False):
-        names = tuple((f.name for f in keys))
+        names = tuple(f.name for f in keys)
         join_name = CPK_SEP.join(names)
-        db_columns = tuple((f.db_column if f.db_column else f.name for f in keys))
-        db_join_column = "(" + ",".join(db_columns) + ")"
         super().__init__(
-                name=join_name, 
-                primary_key=primary,
-                unique=True,
+            name=join_name,
+            primary_key=primary,
+            unique=True,
         )
         self.keys = keys
         self.attname = join_name
