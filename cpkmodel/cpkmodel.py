@@ -1,8 +1,8 @@
 from django.db import router
 from django.db.models import Model
 from django.db.models.base import ModelBase
-from django.db.models.deletion import Collector
 
+from .collector import CpkCollector as Collector
 from .compositekey import CompositeKey
 from .constants import CPK_SEP
 from .cpkquery import CPkQuerySet
