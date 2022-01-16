@@ -98,6 +98,8 @@ class CPkModelBase(ModelBase):
             pkeys = tuple(f for f in meta.local_concrete_fields if f.primary_key)
             # change attributes
             if len(pkeys) > 1:
+                for field in pkeys:
+                    field.serialize = True
                 super_new.has_compositepk = True
                 meta.pk = CompositePk(pkeys)
                 setattr(super_new, "pk", CPkModelMixin.cpk)  # noqa: B010
